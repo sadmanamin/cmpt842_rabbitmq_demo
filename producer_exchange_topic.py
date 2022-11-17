@@ -1,5 +1,4 @@
 from pikaClient import BasicPikaClient
-import sys
 
 class BasicMessageSender(BasicPikaClient):
 
@@ -27,7 +26,7 @@ class BasicMessageSender(BasicPikaClient):
                 routing_key=routing_key_pattern
             )
         except Exception as e:
-            print(e)     
+            print(e) 
 
 
     def send_message(self, exchange, routing_key, body):
@@ -57,18 +56,43 @@ if __name__ == "__main__":
         region="us-west-2"
     )
 
-    print(' [*] Send your messages to queues. Pass arguments of QUEUE,MESSAGE. To exit, press CTRL+C')
+    basic_message_sender.declare_exchange(
+        exchange_name='exc_topic',
+        exchange_type='topic'
+    )
+
+    basic_message_sender.declare_queue('topic_queue_1')
+    basic_message_sender.declare_queue('topic_queue_2')
+
+    basic_message_sender.bind_queue(
+        exchange_name='exc_topic',
+        queue_name='topic_queue_1',
+        routing_key_pattern='email.*'
+    )
+
+    basic_message_sender.bind_queue(
+        exchange_name='exc_topic',
+        queue_name='topic_queue_2',
+        routing_key_pattern='payment.*'
+    )
+
+
+
+
+    print(' [*] Send your messages to queues. Pass arguments of ROUTING_KEY,MESSAGE. To exit, press CTRL+C')
     try:
         while True:
             instructions = input().split(',')
-            queue = instructions[0]
+            print(instructions)
+            routing_key = instructions[0]
             message = bytes(instructions[1], 'utf-8')
 
-            # Declare a queue
-            basic_message_sender.declare_queue(queue)
-
             # Send a message to the queue.
-            basic_message_sender.send_message(exchange='', routing_key=queue, body=message)
+            basic_message_sender.send_message(
+                exchange='exc_topic', 
+                routing_key=routing_key, 
+                body=message
+            )
 
     except Exception as e:
         # Close connections.
